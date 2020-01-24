@@ -82,40 +82,34 @@ class Board:
     # Checks if any side is in check.
     # Returns the side in check if there is one, otherwise returns neutral side
     def check(self):
-        for side in [Sides.WHITE, Sides.BLACK]:
-            kingpos = self.allpieces[0 if side == Sides.WHITE else 1].position
-            # for each enemy piece, check if endangering king
-            for piece in self.allpieces:
-                if (piece.side == side or piece.type == Piece.KING):
+        for kingside in [Sides.WHITE, Sides.BLACK]:
+            kingpos = self.allpieces[0 if kingside == Sides.WHITE else 1].position
+            # for each enemy piece, check if endangering king by checking legit_move
+            for enemyp in self.allpieces:
+                if (enemyp.side == kingside):
                     continue
-                if piece.type == Piece.QUEEN:
-                    # check cardinal directions
-                    if (piece.position[0] == kingpos[0] or piece.position[1] == kingpos[1]):
-                        return side
-                    # check diagonals
-                    if (abs(piece.position[0]-kingpos[0]) == abs(piece.position[1]-kingpos[1])):
-                        return side
-                elif piece.type == Piece.ROOK:
-                    # check cardinal directions only
-                    if (piece.position[0] == kingpos[0] or piece.position[1] == kingpos[1]):
-                        return side
-                elif piece.type == Piece.BISHOP:
-                    # check diagonals only
-                    if (abs(piece.position[0]-kingpos[0]) == abs(piece.position[1]-kingpos[1])):
-                        return side
-                elif piece.type == Piece.KNIGHT:
-                    if ((abs(piece.position[0]-kingpos[0]) == 1 and abs(piece.position[1]-kingpos[1]) == 2)
-                        or (abs(piece.position[1]-kingpos[1]) == 1 and abs(piece.position[0]-kingpos[0]) == 2)):
-                        return side
-                elif piece.type == Piece.PAWN:
-                    if (kingpos[0]-piece.position[0] == -side and abs(kingpos[1]-piece.position[1]) == 1):
-                        return side
+                legit, rsn = self.legit_move("%d %d %d %d" % (enemyp.position[0], enemyp.position[1], kingpos[0], kingpos[1]), -kingside, False)
+                if legit:
+                    return kingside
         return Sides.NEUTRAL
 
     # Checks if any side is in checkmate.
     # Returns the side in checkmate if there is one, otherwise returns neutral side
     def checkmate(self):
-        return Sides.NEUTRAL
+        checkedside = self.check()
+        if (self.check() == Sides.NEUTRAL): # If not in check, not in checkmate
+            return Sides.NEUTRAL
+        # For each of pieces in of side in check, check if there are any legitimate moves
+        for p in self.allpieces:
+            if (p.side != checkedside):
+                continue
+            for i in range(8):
+                for j in range(8):
+                    legit, rsn = self.legit_move("%d %d %d %d" % (p.position[0], p.position[1], i, j), checkedside, True)
+                    if (legit):
+                        print("%d %d %d %d" % (p.position[0], p.position[1], i, j))
+                        return Sides.NEUTRAL
+        return checkedside
 
     # Checks if any pawns are at the opposite ends
     def pawnpromote(self):
@@ -128,7 +122,7 @@ class Board:
     # The move should be in the format "i1 j1 i2 j2" where (i1,j1) is the starting position is the piece
     #   and (i2,j2) is the target position
     # Returns whether legitimate (boolean) and if illegit, the reason for it
-    def legit_move(self, strmove, turn):
+    def legit_move(self, strmove, turn, withcheck):
         # Failure to parse
         startpos = []
         endpos = []
@@ -203,8 +197,8 @@ class Board:
         # Jumping over pieces
         for p in self.allpieces:
             if (piece.type == Piece.ROOK or piece.type == Piece.PAWN or (piece.type == Piece.QUEEN and queen == "Cardinal")):
-                if ((p.position[0] > min(endpos[0], startpos[0]) and p.position[0] < max(endpos[0], startpos[0]) and p.position[0] == startpos[0])
-                    or (p.position[1] > min(endpos[1], startpos[1]) and p.position[1] < max(endpos[1], startpos[1]) and p.position[1] == startpos[1])):
+                if ((p.position[0] > min(endpos[0], startpos[0]) and p.position[0] < max(endpos[0], startpos[0]) and p.position[1] == startpos[1])
+                    or (p.position[1] > min(endpos[1], startpos[1]) and p.position[1] < max(endpos[1], startpos[1]) and p.position[0] == startpos[0])):
                     return False, Piece.chrtofull[piece.type] + " cannot jump over pieces."
             elif (piece.type == Piece.BISHOP or (piece.type == Piece.QUEEN and queen == "Diagonal")):
                 if ((p.position[0] == startpos[0]) or (p.position[0] == endpos[0])
@@ -217,10 +211,11 @@ class Board:
                     return False, Piece.chrtofull[piece.type] + " cannot jump over pieces."
 
         # Causes check
-        copyboard = self.deepcopy()
-        copyboard.do_move(strmove)
-        if copyboard.check() == piece.side:
-            return False, "Move causes king to be in check."
+        if withcheck:
+            copyboard = self.deepcopy()
+            copyboard.do_move(strmove)
+            if copyboard.check() == piece.side:
+                return False, "Move causes king to be in check."
 
         # Overlapping own piece
         for p in self.allpieces:

@@ -13,7 +13,7 @@ while board.checkmate() == chessboard.Sides.NEUTRAL:
     legit = False
     while not legit:
         strmove = input(chessboard.Sides.strname(turn)+" move: ")
-        legit, invalid_reason = board.legit_move(strmove, turn)
+        legit, invalid_reason = board.legit_move(strmove, turn, True)
         if legit:
             board.do_move(strmove)
         else:
