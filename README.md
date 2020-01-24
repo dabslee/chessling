@@ -7,4 +7,4 @@ Some of their versions:
 * https://github.com/AlbertLin19/ChessSpeedRun
 
 # Time Log
-1/23/2019: 4 hrs 20 min logged
+1/23/2019: 4 hrs 37 min logged
