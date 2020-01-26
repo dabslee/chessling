@@ -10,8 +10,9 @@ Some of their versions:
     * 18 min logged before stalemate implemented
 * 1/25/2019: 2 hrs
 
+Running total: 7 hrs 53 min logged before GUI (with features so far) finished
+
 # Remaining Features to Implement
-* Issue: Can move to check other player when you are in check
 * Castling
 * En Passant
 * Point Tracking

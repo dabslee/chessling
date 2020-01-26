@@ -100,11 +100,10 @@ while running:
     else:
         scale = windowsize[1]/960
 
-    # Draw the chess board
+    # Draw everything
     screen.fill(COLOR.BLUE)
     draw_board()
     show_text(showntext)
-    
     pygame.display.flip()
 
     # Event handling
@@ -134,19 +133,48 @@ while running:
                         if legit:
                             board.do_move(strmove)
                             selectedposition = None
-
+                            showntext = ""
+                            
                             # Checking for pawn promotions
                             p = board.pawnpromote()
                             if p != -1:
+                                showntext = "To what would you like to promote the pawn?"                                
                                 promotetarget = ""
-                                while (promotetarget not in ['Q','R','N','B','P']):
-                                    promotetarget = input("What would you like to promote your pawn to (Q, R, N, B, P)? ")
-                                    if (promotetarget not in ['Q','R','N','B','P']):
-                                        print("Invalid input. Please try again.")
-                                    else:
-                                        p.type = promotetarget
-                                        print("Pawn promoted.")
-
+                                while (promotetarget == ""):
+                                    draw_board()
+                                    show_text(showntext)
+                                    screen.blit(pygame.transform.scale(get_image("Qb.png"),
+                                                                       (sqlength,sqlength)),
+                                                (int(windowsize[0]/2-sqlength*1.5),int(windowsize[1]//1.3)))
+                                    screen.blit(pygame.transform.scale(get_image("Rb.png"),
+                                                                       (sqlength,sqlength)),
+                                                (int(windowsize[0]/2-sqlength*0.5),int(windowsize[1]//1.3)))
+                                    screen.blit(pygame.transform.scale(get_image("Nb.png"),
+                                                                       (sqlength,sqlength)),
+                                                (int(windowsize[0]/2+sqlength*0.5),int(windowsize[1]//1.3)))
+                                    screen.blit(pygame.transform.scale(get_image("Bb.png"),
+                                                                       (sqlength,sqlength)),
+                                                (int(windowsize[0]/2+sqlength*1.5),int(windowsize[1]//1.3)))
+                                    pygame.display.flip()
+                                    for event in pygame.event.get():
+                                        if (event.type == pygame.VIDEORESIZE):
+                                            pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                                        if (event.type == pygame.MOUSEBUTTONDOWN):
+                                            mousepos = pygame.mouse.get_pos()
+                                            if (mousepos[1] > int(windowsize[1]//1.3) and mousepos[1] < int(windowsize[1]//1.3) + sqlength):
+                                                if (mousepos[0] > int(windowsize[0]/2-sqlength*1.5) and mousepos[0] < int(windowsize[0]/2-sqlength*0.5)):
+                                                    promotetarget = 'Q'
+                                                elif (mousepos[0] > int(windowsize[0]/2-sqlength*0.5) and mousepos[0] < int(windowsize[0]/2+sqlength*0.5)):
+                                                    promotetarget = 'R'
+                                                elif (mousepos[0] > int(windowsize[0]/2+sqlength*0.5) and mousepos[0] < int(windowsize[0]/2+sqlength*1.5)):
+                                                    promotetarget = 'N'
+                                                elif (mousepos[0] > int(windowsize[0]/2+sqlength*1.5) and mousepos[0] < int(windowsize[0]/2+sqlength*2.5)):
+                                                    promotetarget = 'B'
+                                        elif (event.type == pygame.QUIT):
+                                            running = False
+                                            break
+                                    clock.tick(60)
+                                p.type = promotetarget
                             # Checking for checkmate
                             side_checkmate = board.checkmate()
                             if (side_checkmate != chessboard.Sides.NEUTRAL):
@@ -167,7 +195,7 @@ while running:
 
                             turn *= -1 # switches turn from white to black or vice versa
                         else:
-                            showntext = "Invalid move! " + invalid_reason
+                            selectedposition = None
                 else:
                     selectedposition = None
         elif (event.type == pygame.QUIT):

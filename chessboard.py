@@ -178,7 +178,7 @@ class Board:
         if (endpos[0]==startpos[0] and endpos[1]==startpos[1]):
             return False, "Can't move to original position."
         if (piece.type == Piece.KING):
-            if (abs(endpos[0]-startpos[0]) > 1 or endpos[1]-startpos[1] > 1):
+            if (abs(endpos[0]-startpos[0]) > 1 or abs(endpos[1]-startpos[1]) > 1):
                 return False, "Invalid target position for " + Piece.chrtofull[piece.type] + "."
         elif (piece.type == Piece.QUEEN):
             if (not((piece.position[0] == endpos[0] or piece.position[1] == endpos[1]) # cardinal
