@@ -93,6 +93,19 @@ class Board:
                     return kingside
         return Sides.NEUTRAL
 
+    # Checks if side whose turn it is is in checkmate
+    # Returns True or False
+    def stalemate(self, turn):
+        for p in self.allpieces:
+            if (p.side != turn):
+                continue
+            for i in range(8):
+                for j in range(8):
+                    legit, rsn = self.legit_move("%d %d %d %d" % (p.position[0], p.position[1], i, j), turn, True)
+                    if (legit):
+                        return False
+        return True
+
     # Checks if any side is in checkmate.
     # Returns the side in checkmate if there is one, otherwise returns neutral side
     def checkmate(self):
@@ -107,7 +120,6 @@ class Board:
                 for j in range(8):
                     legit, rsn = self.legit_move("%d %d %d %d" % (p.position[0], p.position[1], i, j), checkedside, True)
                     if (legit):
-                        print("%d %d %d %d" % (p.position[0], p.position[1], i, j))
                         return Sides.NEUTRAL
         return checkedside
 
@@ -117,6 +129,17 @@ class Board:
             if (p.type == Piece.PAWN and p.position[0] == (0 if p.side == Sides.WHITE else 7)):
                 return p
         return -1
+
+    # Translates chess coordinates ("E4") to coordinates readable by legit_move and do_move ("4 4")
+    def chess2strmove(chessxy):
+        chessxy = chessxy.upper()
+        if (len(chessxy) != 2
+            or ord(chessxy[0]) < ord('A') or ord(chessxy[0]) > ord('Z')
+            or ord(chessxy[1]) < ord('0') or ord(chessxy[1]) > ord('9')):
+            return "Failed"
+        i = 8 - (ord(chessxy[1]) - ord('0'))
+        j = ord(chessxy[0]) - ord('A')
+        return ("%d %d" % (i, j))
 
     # Checks if a move described by a string is legitimate given the current piece positions
     # The move should be in the format "i1 j1 i2 j2" where (i1,j1) is the starting position is the piece
@@ -239,9 +262,8 @@ class Board:
                 piece.position = endpos
                 break
 
-    # Returns the current board as a string
-    def board_as_string(self):
-        # Store board in char matrix
+    # Returns the current board as a char matrix
+    def board_as_charmat(self):
         matrix = []
         for i in range(8):
             row = []
@@ -250,6 +272,11 @@ class Board:
             matrix.append(row)
         for piece in self.allpieces:
             matrix[piece.position[0]][piece.position[1]] = piece.type + Sides.chrname(piece.side)
+        return matrix
+
+    # Returns the current board as a string
+    def board_as_string(self):
+        matrix = self.board_as_charmat()
         # Represent char matrix as string
         retstr = "   0  1  2  3  4  5  6  7\n"
         for i in range(8):
@@ -258,3 +285,10 @@ class Board:
                 retstr += matrix[i][j] + "|"
             retstr += "\n"
         return retstr
+
+    # Returns piece at given position
+    def piece_at_pos(self, pos):
+        for p in self.allpieces:
+            if (p.position[0] == pos[0] and p.position[1] == pos[1]):
+                return p
+        return None
