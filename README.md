@@ -1,4 +1,4 @@
-# Chess Lite
+# Chessling
 Chess, written as fast as I possibly could. Streamlined for easy coding. Created on a challenge with friends on coding chess as fast as we possibly could.
 
 Some of their versions:
